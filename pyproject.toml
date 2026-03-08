@@ -7,3 +7,9 @@ dependencies = [
     "django>=6.0.3",
     "pillow>=12.1.1",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "ruff>=0.15.5",
+]
