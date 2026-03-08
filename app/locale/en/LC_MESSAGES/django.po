@@ -1,0 +1,106 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-08 13:57+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+#: workshops/models.py:7
+msgid "Title"
+msgstr ""
+
+#: workshops/models.py:8
+msgid "Description"
+msgstr ""
+
+#: workshops/models.py:9
+msgid "Start Date"
+msgstr ""
+
+#: workshops/models.py:10 workshops/templates/workshops/workshop_list.html:15
+msgid "Location"
+msgstr ""
+
+#: workshops/models.py:12
+msgid "Image"
+msgstr ""
+
+#: workshops/models.py:17 workshops/models.py:29
+msgid "Workshop"
+msgstr ""
+
+#: workshops/models.py:18
+msgid "Workshops"
+msgstr ""
+
+#: workshops/models.py:31
+msgid "Name"
+msgstr ""
+
+#: workshops/models.py:32
+msgid "Email"
+msgstr ""
+
+#: workshops/models.py:33
+msgid "Created at"
+msgstr ""
+
+#: workshops/models.py:37
+msgid "Registration"
+msgstr ""
+
+#: workshops/models.py:38
+msgid "Registrations"
+msgstr ""
+
+#: workshops/templates/base.html:7
+msgid "Workshop Platform"
+msgstr ""
+
+#: workshops/templates/base.html:12
+msgid "Workshop Registration Platform"
+msgstr ""
+
+#: workshops/templates/base.html:13
+msgid "Browse workshops and register in a few clicks."
+msgstr ""
+
+#: workshops/templates/base.html:19
+msgid "Language"
+msgstr ""
+
+#: workshops/templates/base.html:27
+msgid "Change language"
+msgstr ""
+
+#: workshops/templates/base.html:31
+msgid "All workshops"
+msgstr ""
+
+#: workshops/templates/workshops/workshop_list.html:4
+msgid "Workshop list"
+msgstr ""
+
+#: workshops/templates/workshops/workshop_list.html:7
+msgid "Available workshops"
+msgstr ""
+
+#: workshops/templates/workshops/workshop_list.html:14
+msgid "Date"
+msgstr ""
+
+#: workshops/templates/workshops/workshop_list.html:21
+msgid "No workshops available yet"
+msgstr ""

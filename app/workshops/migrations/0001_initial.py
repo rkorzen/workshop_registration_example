@@ -5,42 +5,75 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Workshop',
+            name="Workshop",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=255, verbose_name='Title')),
-                ('description', models.TextField(verbose_name='Description')),
-                ('start_date', models.DateTimeField(verbose_name='Start Date')),
-                ('location', models.CharField(max_length=255, verbose_name='Location')),
-                ('image', models.ImageField(blank=True, null=True, upload_to='workshops/', verbose_name='Image')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=255, verbose_name="Title")),
+                ("description", models.TextField(verbose_name="Description")),
+                ("start_date", models.DateTimeField(verbose_name="Start Date")),
+                ("location", models.CharField(max_length=255, verbose_name="Location")),
+                (
+                    "image",
+                    models.ImageField(
+                        blank=True,
+                        null=True,
+                        upload_to="workshops/",
+                        verbose_name="Image",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Workshop',
-                'verbose_name_plural': 'Workshops',
-                'ordering': ['start_date'],
+                "verbose_name": "Workshop",
+                "verbose_name_plural": "Workshops",
+                "ordering": ["start_date"],
             },
         ),
         migrations.CreateModel(
-            name='Registration',
+            name="Registration",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255, verbose_name='Name')),
-                ('email', models.EmailField(max_length=254, verbose_name='Email')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Created at')),
-                ('workshop', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='registrations', to='workshops.workshop', verbose_name='Workshop')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255, verbose_name="Name")),
+                ("email", models.EmailField(max_length=254, verbose_name="Email")),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Created at"),
+                ),
+                (
+                    "workshop",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="registrations",
+                        to="workshops.workshop",
+                        verbose_name="Workshop",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Registration',
-                'verbose_name_plural': 'Registrations',
-                'ordering': ['-created_at'],
+                "verbose_name": "Registration",
+                "verbose_name_plural": "Registrations",
+                "ordering": ["-created_at"],
             },
         ),
     ]
