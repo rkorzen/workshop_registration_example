@@ -8,3 +8,4 @@ Niech choc pare tekstow zmienia sie przy zmiane wersji jezykowej
 2. settings.py - dodajemy wymagane do dzialania i18n + LocaleMiddleware
 3. w szablonach dodajemy {% load i18n %} i potem mamy  {% trans "text" %} lub {% blocktrans %}text{% endblocktrans %}
 4. dodajemy przelacznik w szablonie glownym
+15:45

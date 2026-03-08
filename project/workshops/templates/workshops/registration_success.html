@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Registration successful" %}{% endblock %}
+
+{% block content %}
+<h2>{% trans "Thank you for registering." %}</h2>
+<p>{% trans "A confirmation email will be sent in the background task queue." %}</p>
+<p><a href="{% url 'workshops:workshop_list' %}">{% trans "Back to workshop list" %}</a></p>
+{% endblock %}

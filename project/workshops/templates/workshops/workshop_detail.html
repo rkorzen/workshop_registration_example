@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ workshop.title }}{% endblock %}
+
+{% block content %}
+    <article>
+    <h2>{{ workshop.title }}</h2>
+    <p>{% trans "Date" %}: {{ workshop.start_date }}</p>
+    <p>{% trans "Location" %}: {{ workshop.location }}</p>
+    <p>{{ workshop.description }}</p>
+
+    {% if workshop.image %}
+        <img src="{{ workshop.image.url }}" alt="{{ workshop.title }}">
+    {% endif %}
+
+    <p>
+        <a href="{% url 'workshops:register' workshop.id %}">{% trans "Register" %}</a>
+    </p>
+
+    </article>
+
+{% endblock %}

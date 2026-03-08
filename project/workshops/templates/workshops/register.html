@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Register" %} - {{ workshop.title }}{% endblock %}
+
+{% block content %}
+<h2>{% trans "Register for workshop" %}: {{ workshop.title }}</h2>
+
+{# Demonstrates basic Django CSRF protection and form rendering. #}
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">{% trans "Submit registration" %}</button>
+</form>
+{% endblock %}

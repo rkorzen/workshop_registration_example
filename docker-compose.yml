@@ -1,5 +1,168 @@
+#
+# Docker Compose topology for the training project.
+# The stack intentionally contains five services:
+# 1) web            - Django HTTP application
+# 2) celery_worker  - asynchronous task worker
+# 3) postgres       - relational database
+# 4) redis          - message broker/result backend for Celery
+# 5) mailhog        - local SMTP sink + web UI for viewing outgoing emails
+#
 services:
+  # ----------------------------------------------------------------------------
+  # web: main Django process exposed on localhost:8000
+  # ----------------------------------------------------------------------------
   web:
-    build: .
+    build:
+      # Build image from local Dockerfile in this repository root.
+      context: .
+      dockerfile: Dockerfile
+    # Startup sequence for training:
+    # - apply migrations
+    # - collect static assets
+    # - run Django dev server
+    # In production this would usually be split into separate lifecycle steps.
+    command: sh -c "python manage.py migrate && python manage.py collectstatic --noinput && python manage.py runserver 0.0.0.0:8000"
+    environment:
+      # Django application configuration.
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-1}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-django-insecure-training-secret-key}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-training@example.com}
+      EMAIL_BACKEND: ${EMAIL_BACKEND:-django.core.mail.backends.smtp.EmailBackend}
+      EMAIL_HOST: ${EMAIL_HOST:-mailhog}
+      EMAIL_PORT: ${EMAIL_PORT:-1025}
+      EMAIL_HOST_USER: ${EMAIL_HOST_USER:-}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD:-}
+      EMAIL_USE_TLS: ${EMAIL_USE_TLS:-0}
+      EMAIL_USE_SSL: ${EMAIL_USE_SSL:-0}
+
+      # PostgreSQL connection values consumed by Django settings.py.
+      POSTGRES_DB: ${POSTGRES_DB:-workshops_db}
+      POSTGRES_USER: ${POSTGRES_USER:-workshops_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-workshops_password}
+      POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+
+      # Celery + Redis runtime values.
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
+      CELERY_TASK_ALWAYS_EAGER: ${CELERY_TASK_ALWAYS_EAGER:-0}
+
+      # Optional observability integration (disabled by default).
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0.0}
     ports:
+      # Host port 8000 forwards to container port 8000.
       - "8000:8000"
+    volumes:
+      # Bind mount project code for fast live-reload style iteration in training.
+      - ./project:/app
+      # Named volumes keep generated artifacts persistent between container restarts.
+      - static:/app/staticfiles
+      - media:/app/media
+    depends_on:
+      # Start web only after dependencies report healthy status.
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+
+  # ----------------------------------------------------------------------------
+  # celery_worker: executes background tasks enqueued by Django views
+  # ----------------------------------------------------------------------------
+  celery_worker:
+    build:
+      # Worker uses the same image as web to keep environment identical.
+      context: .
+      dockerfile: Dockerfile
+    # Celery application lives in config/celery.py, so -A config is enough.
+    command: celery -A config worker --loglevel=info
+    environment:
+      # Keep worker settings aligned with web service.
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-1}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-django-insecure-training-secret-key}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-training@example.com}
+      EMAIL_BACKEND: ${EMAIL_BACKEND:-django.core.mail.backends.smtp.EmailBackend}
+      EMAIL_HOST: ${EMAIL_HOST:-mailhog}
+      EMAIL_PORT: ${EMAIL_PORT:-1025}
+      EMAIL_HOST_USER: ${EMAIL_HOST_USER:-}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD:-}
+      EMAIL_USE_TLS: ${EMAIL_USE_TLS:-0}
+      EMAIL_USE_SSL: ${EMAIL_USE_SSL:-0}
+      POSTGRES_DB: ${POSTGRES_DB:-workshops_db}
+      POSTGRES_USER: ${POSTGRES_USER:-workshops_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-workshops_password}
+      POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
+      CELERY_TASK_ALWAYS_EAGER: ${CELERY_TASK_ALWAYS_EAGER:-0}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0.0}
+    volumes:
+      # Same mounts as web so worker sees code changes and shared static/media dirs.
+      - ./project:/app
+      - static:/app/staticfiles
+      - media:/app/media
+    depends_on:
+      # Worker also waits for database and broker health.
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+
+  # ----------------------------------------------------------------------------
+  # postgres: primary relational database
+  # ----------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      # Bootstraps database/user on first container start.
+      POSTGRES_DB: ${POSTGRES_DB:-workshops_db}
+      POSTGRES_USER: ${POSTGRES_USER:-workshops_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-workshops_password}
+    volumes:
+      # Persist database files outside ephemeral container filesystem.
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      # pg_isready returns success when server accepts connections.
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-workshops_user} -d ${POSTGRES_DB:-workshops_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ----------------------------------------------------------------------------
+  # redis: broker for Celery queues (and optional result backend)
+  # ----------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      # redis-cli ping returns PONG when instance is alive.
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # ----------------------------------------------------------------------------
+  # mailhog: captures SMTP traffic and exposes a local web UI with message inbox
+  # ----------------------------------------------------------------------------
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    ports:
+      # Web UI for browsing captured emails.
+      - "8025:8025"
+      # SMTP endpoint used by Django/Celery mail backend.
+      - "1025:1025"
+
+volumes:
+  # Stores PostgreSQL data files.
+  postgres_data:
+  # Stores collectstatic output.
+  static:
+  # Stores user uploaded media files.
+  media:
